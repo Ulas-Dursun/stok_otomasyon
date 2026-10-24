@@ -67,6 +67,13 @@
             </div>
         </div>
         <div class="stat-card">
+            <div class="stat-icon">🛍️</div>
+            <div class="stat-info">
+                <h4>Toplam Sipariş</h4>
+                <div class="stat-value" style="color: var(--primary);">{{.TotalOrders}}</div>
+            </div>
+        </div>
+        <div class="stat-card">
             <div class="stat-icon">🏢</div>
             <div class="stat-info">
                 <h4>Aktif Şube</h4>
@@ -109,6 +116,47 @@
                 <a href="/info/crud/add" class="btn btn-outline btn-sm">+ Yeni Şube</a>
             </div>
         </div>
+    </div>
+
+    <!-- Sistemdeki Son Sipariş Hareketleri -->
+    <div class="card" style="margin-top: 24px; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 18px; margin: 0;">🛍️ Son Sipariş Hareketleri (Tüm Kullanıcılar)</h3>
+            <a href="/product/crud/list" class="btn btn-outline btn-sm">Katalog & Stok Gör</a>
+        </div>
+
+        {{if .RecentOrders}}
+            <div class="table-responsive" style="margin: 0; border: none;">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sipariş No</th>
+                        <th>Kullanıcı</th>
+                        <th>Ürün Adı</th>
+                        <th>Adet</th>
+                        <th>Tarih</th>
+                        <th>Durum</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{range .RecentOrders}}
+                        <tr>
+                            <td><strong>#{{.ID}}</strong></td>
+                            <td><span class="badge badge-user">{{.Username}}</span></td>
+                            <td><strong>{{.ProductName}}</strong></td>
+                            <td>{{.Quantity}} Adet</td>
+                            <td>{{.CreatedAt.Format "02.01.2006 15:04"}}</td>
+                            <td><span class="badge badge-success">✓ {{.Status}}</span></td>
+                        </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+            </div>
+        {{else}}
+            <div style="text-align: center; padding: 30px; color: var(--gray);">
+                Sistemde henüz verilmiş bir sipariş bulunmuyor.
+            </div>
+        {{end}}
     </div>
 </div>
 </body>

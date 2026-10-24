@@ -7,6 +7,22 @@ use crate::services::counter_service::get_next_sequence_value;
 use mongodb::bson::{doc};
 use futures::stream::TryStreamExt;
 use crate::auth_middleware::with_jwt_auth;
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct OrderResponse {
+    pub success: bool,
+    pub message: String,
+    pub product_name: Option<String>,
+    pub remaining_stock: Option<u32>,
+}
+
+#[derive(Serialize)]
+pub struct RestockResponse {
+    pub success: bool,
+    pub message: String,
+    pub new_stock: Option<u32>,
+}
 
 pub fn product_routes(
     product_collection: Collection<Product>,
@@ -44,8 +60,15 @@ pub fn product_routes(
             .and(warp::post())
             .and(with_jwt_auth("normal"))  // Both normal and superuser can place order
             .and(warp::path::param())
-            .and(with_db(product_collection))
+            .and(with_db(product_collection.clone()))
             .and_then(handle_order_product)
+        )
+        .or(warp::path("restock_product")
+            .and(warp::post())
+            .and(with_jwt_auth("superuser"))  // SuperUser can quick restock
+            .and(warp::path::param())
+            .and(with_db(product_collection))
+            .and_then(handle_restock_product)
         )
 }
 
@@ -149,7 +172,12 @@ async fn handle_order_product(
     match db.find_one(filter.clone(), None).await {
         Ok(Some(product)) => {
             if product.miktar == 0 || !product.satis_durumu {
-                return Ok(warp::reply::json(&"Ürün stokta yok veya satışa kapalı"));
+                return Ok(warp::reply::json(&OrderResponse {
+                    success: false,
+                    message: "Ürün stokta yok veya satışa kapalı".to_string(),
+                    product_name: Some(product.adi),
+                    remaining_stock: Some(0),
+                }));
             }
             let new_miktar = product.miktar - 1;
             let new_stok = new_miktar > 0;
@@ -160,12 +188,64 @@ async fn handle_order_product(
                 }
             };
             let _ = db.update_one(filter, update, None).await;
-            Ok(warp::reply::json(&"Sipariş başarıyla oluşturuldu"))
+            Ok(warp::reply::json(&OrderResponse {
+                success: true,
+                message: "Sipariş başarıyla oluşturuldu".to_string(),
+                product_name: Some(product.adi),
+                remaining_stock: Some(new_miktar),
+            }))
         }
-        Ok(None) => Ok(warp::reply::json(&"Ürün bulunamadı")),
+        Ok(None) => Ok(warp::reply::json(&OrderResponse {
+            success: false,
+            message: "Ürün bulunamadı".to_string(),
+            product_name: None,
+            remaining_stock: None,
+        })),
         Err(e) => {
             eprintln!("Failed to order product: {:?}", e);
-            Ok(warp::reply::json(&"Sipariş oluşturulamadı"))
+            Ok(warp::reply::json(&OrderResponse {
+                success: false,
+                message: "Veritabanı hatası".to_string(),
+                product_name: None,
+                remaining_stock: None,
+            }))
+        }
+    }
+}
+
+async fn handle_restock_product(
+    product_id: String,
+    db: Collection<Product>
+) -> Result<impl warp::Reply, Infallible> {
+    let filter = doc! { "id": &product_id };
+    match db.find_one(filter.clone(), None).await {
+        Ok(Some(product)) => {
+            let new_miktar = product.miktar + 10;
+            let update = doc! {
+                "$set": {
+                    "miktar": new_miktar,
+                    "stok_durumu": true,
+                }
+            };
+            let _ = db.update_one(filter, update, None).await;
+            Ok(warp::reply::json(&RestockResponse {
+                success: true,
+                message: "Stok başarıyla +10 adet artırıldı".to_string(),
+                new_stock: Some(new_miktar),
+            }))
+        }
+        Ok(None) => Ok(warp::reply::json(&RestockResponse {
+            success: false,
+            message: "Ürün bulunamadı".to_string(),
+            new_stock: None,
+        })),
+        Err(e) => {
+            eprintln!("Failed to restock product: {:?}", e);
+            Ok(warp::reply::json(&RestockResponse {
+                success: false,
+                message: "Stok artırılamadı".to_string(),
+                new_stock: None,
+            }))
         }
     }
 }

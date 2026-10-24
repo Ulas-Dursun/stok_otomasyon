@@ -48,6 +48,7 @@ func RegisterRoutes() {
 	http.Handle("/product/crud/update", middleware.JWTMiddleware(middleware.RoleBasedMiddleware(controllers.ShowProductCrudUpdate, "superuser")))
 	http.Handle("/product_update", middleware.JWTMiddleware(middleware.RoleBasedMiddleware(controllers.UpdateProduct, "superuser")))
 	http.Handle("/product/order", middleware.JWTMiddleware(http.HandlerFunc(controllers.OrderProduct)))
+	http.Handle("/product/restock", middleware.JWTMiddleware(middleware.RoleBasedMiddleware(controllers.RestockProduct, "superuser")))
 
 	// Info CRUD rotaları (Hem yeni hem eski URL şemaları desteklenir)
 	http.Handle("/info/crud", middleware.JWTMiddleware(http.HandlerFunc(controllers.ShowInfoCrud)))

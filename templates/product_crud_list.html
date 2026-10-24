@@ -48,6 +48,10 @@
             alertBox.innerHTML = '<div class="alert alert-success">🎉 Siparişiniz başarıyla alındı ve Rust API tarafından stoktan 1 adet düşüldü!</div>';
         } else if (urlParams.get('error') === 'siparis_hatasi') {
             alertBox.innerHTML = '<div class="alert alert-danger">❌ Sipariş verilemedi. Ürün stokta tükenmiş olabilir!</div>';
+        } else if (urlParams.get('success') === 'stok_artirildi') {
+            alertBox.innerHTML = '<div class="alert alert-success">⚡ Ürün stoğu Rust Core API üzerinden başarıyla +10 adet artırıldı!</div>';
+        } else if (urlParams.get('error') === 'stok_artirma_hatasi') {
+            alertBox.innerHTML = '<div class="alert alert-danger">❌ Stok artırma başarısız oldu. Yalnızca Superuser yetkisiyle yapılabilir!</div>';
         }
     </script>
 
@@ -73,10 +77,12 @@
                             <span style="font-weight: 600;">{{.Miktar}} Adet</span>
                         </td>
                         <td>
-                            {{if .StokDurumu}}
-                                <span class="badge badge-success">Mevcut</span>
+                            {{if eq .Miktar 0}}
+                                <span class="badge badge-danger">⛔ Tükendi</span>
+                            {{else if le .Miktar 3}}
+                                <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">⚠️ Kritik ({{.Miktar}})</span>
                             {{else}}
-                                <span class="badge badge-danger">Tükendi</span>
+                                <span class="badge badge-success">✓ Mevcut ({{.Miktar}})</span>
                             {{end}}
                         </td>
                         <td>
@@ -101,6 +107,14 @@
                                         Tükendi
                                     </button>
                                 {{end}}
+
+                                <!-- Admin Hızlı Stok Artırma Butonu -->
+                                <form action="/product/restock" method="POST" style="margin: 0;" title="Hızlı +10 Stok Ekle">
+                                    <input type="hidden" name="id" value="{{.ID}}">
+                                    <button type="submit" class="btn btn-outline btn-sm" style="padding: 5px 8px; font-size: 11px; border-color: #10b981; color: #10b981;">
+                                        +10 Stok
+                                    </button>
+                                </form>
 
                                 <!-- Admin Yönetim Butonları -->
                                 <a href="/product/crud/update" class="btn btn-outline btn-sm" style="padding: 5px 10px; font-size: 12px;" title="Düzenle">✏️</a>

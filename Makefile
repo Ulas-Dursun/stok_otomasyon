@@ -1,4 +1,4 @@
-.PHONY: all run rust go clean
+.PHONY: all run rust go test clean docker-up docker-down
 
 all: run
 
@@ -14,7 +14,22 @@ rust:
 go:
 	go run main.go
 
+# Tüm birim testleri (Go ve Rust) çalıştırır
+test:
+	@echo "🧪 Running Rust unit tests..."
+	@cd backend-rust && cargo test --quiet
+	@echo "🧪 Running Go unit tests..."
+	@go test -v ./...
+
+# Docker ile tüm servisleri ayağa kaldırır
+docker-up:
+	docker compose up --build -d
+
+# Docker konteynerlerini durdurur
+docker-down:
+	docker compose down
+
 # Derleme artıklarını temizler
 clean:
 	cd backend-rust && cargo clean
-	rm -f main
+	rm -f main server

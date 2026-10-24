@@ -16,6 +16,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Şifre hashleme fonksiyonu (Rust SHA-256 ile uyumlu)
@@ -217,6 +218,8 @@ type DashboardData struct {
 	TotalProducts int64
 	InStockCount  int64
 	TotalInfos    int64
+	TotalOrders   int64
+	RecentOrders  []models.Order
 }
 
 func getDashboardData(claims *middleware.Claims) DashboardData {
@@ -233,6 +236,19 @@ func getDashboardData(claims *middleware.Claims) DashboardData {
 		data.TotalProducts, _ = models.Client.Database("product").Collection("product_db").CountDocuments(ctx, bson.M{})
 		data.InStockCount, _ = models.Client.Database("product").Collection("product_db").CountDocuments(ctx, bson.M{"stok_durumu": true})
 		data.TotalInfos, _ = models.Client.Database("info").Collection("info_db").CountDocuments(ctx, bson.M{})
+
+		if models.OrderCollection != nil {
+			data.TotalOrders, _ = models.OrderCollection.CountDocuments(ctx, bson.M{})
+			filter := bson.M{}
+			if !middleware.IsSuperRole(claims.Role) {
+				filter["username"] = claims.Username
+			}
+			findOpts := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}}).SetLimit(10)
+			cursor, err := models.OrderCollection.Find(ctx, filter, findOpts)
+			if err == nil && cursor != nil {
+				_ = cursor.All(ctx, &data.RecentOrders)
+			}
+		}
 	}
 
 	return data

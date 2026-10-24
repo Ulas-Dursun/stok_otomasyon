@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"go_market_otomasyon/middleware"
@@ -190,7 +191,14 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/product/crud/list", http.StatusSeeOther)
 }
 
-// OrderProduct kullanıcının katalogdan 1 adet sipariş vermesini ve stoktan düşülmesini sağlar
+type rustOrderResponse struct {
+	Success        bool    `json:"success"`
+	Message        string  `json:"message"`
+	ProductName    *string `json:"product_name"`
+	RemainingStock *uint   `json:"remaining_stock"`
+}
+
+// OrderProduct kullanıcının katalogdan 1 adet sipariş vermesini, stoktan düşülmesini ve sipariş geçmişine kaydedilmesini sağlar
 func OrderProduct(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Redirect(w, r, "/product/crud/list", http.StatusSeeOther)
@@ -209,13 +217,67 @@ func OrderProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, status, err := callRustAPI(http.MethodPost, "/order_product/"+productID, token, nil)
+	body, status, err := callRustAPI(http.MethodPost, "/order_product/"+productID, token, nil)
 	if err != nil || status != http.StatusOK {
 		http.Redirect(w, r, "/product/crud/list?error=siparis_hatasi", http.StatusSeeOther)
 		return
 	}
 
-	http.Redirect(w, r, "/product/crud/list?success=siparis_verildi", http.StatusSeeOther)
+	var resp rustOrderResponse
+	if err := json.Unmarshal(body, &resp); err == nil && resp.Success {
+		// Başarılı siparişi MongoDB orders koleksiyonuna kaydet
+		if claims, ok := middleware.GetClaims(r); ok && models.OrderCollection != nil {
+			orderID := models.GetNextSequenceValue("order")
+			prodName := "Ürün #" + productID
+			if resp.ProductName != nil && *resp.ProductName != "" {
+				prodName = *resp.ProductName
+			}
+			newOrder := models.Order{
+				ID:          orderID,
+				Username:    claims.Username,
+				ProductID:   productID,
+				ProductName: prodName,
+				Quantity:    1,
+				CreatedAt:   time.Now(),
+				Status:      "Tamamlandı",
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			_, _ = models.OrderCollection.InsertOne(ctx, newOrder)
+			cancel()
+		}
+		http.Redirect(w, r, "/product/crud/list?success=siparis_verildi", http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/product/crud/list?error=siparis_hatasi", http.StatusSeeOther)
+}
+
+// RestockProduct admin kullanıcısının ürüne +10 adet stok eklemesini sağlar
+func RestockProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/product/crud/list", http.StatusSeeOther)
+		return
+	}
+
+	token, err := getTokenFromCookie(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	productID := strings.TrimSpace(r.FormValue("id"))
+	if productID == "" {
+		http.Redirect(w, r, "/product/crud/list", http.StatusSeeOther)
+		return
+	}
+
+	_, status, err := callRustAPI(http.MethodPost, "/restock_product/"+productID, token, nil)
+	if err != nil || status != http.StatusOK {
+		http.Redirect(w, r, "/product/crud/list?error=stok_artirma_hatasi", http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/product/crud/list?success=stok_artirildi", http.StatusSeeOther)
 }
 
 // --- Info CRUD Handlers ---

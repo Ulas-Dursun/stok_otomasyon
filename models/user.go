@@ -56,6 +56,7 @@ func ConnectDatabase() error {
 
 	UserCollection = client.Database("user").Collection("user_db")
 	CounterCollection = client.Database("market_otomasyon").Collection("counters")
+	OrderCollection = client.Database("market_otomasyon").Collection("orders")
 	Client = client
 	return nil
 }

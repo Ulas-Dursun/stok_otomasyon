@@ -56,6 +56,13 @@
             </div>
         </div>
         <div class="stat-card">
+            <div class="stat-icon">🛍️</div>
+            <div class="stat-info">
+                <h4>Verdiğim Siparişler</h4>
+                <div class="stat-value" style="color: var(--primary);">{{.TotalOrders}}</div>
+            </div>
+        </div>
+        <div class="stat-card">
             <div class="stat-icon">🏢</div>
             <div class="stat-info">
                 <h4>Hizmet Veren Şubeler</h4>
@@ -85,6 +92,45 @@
                 <a href="/info/crud/list" class="btn btn-outline btn-block">Şubeleri Görüntüle</a>
             </div>
         </div>
+    </div>
+
+    <!-- Son Siparişlerim Tablosu -->
+    <div class="card" style="margin-top: 24px; padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 18px; margin: 0;">🛍️ Son Siparişlerim</h3>
+            <a href="/product/crud/list" class="btn btn-outline btn-sm">+ Yeni Sipariş</a>
+        </div>
+
+        {{if .RecentOrders}}
+            <div class="table-responsive" style="margin: 0; border: none;">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Sipariş No</th>
+                        <th>Ürün Adı</th>
+                        <th>Adet</th>
+                        <th>Tarih</th>
+                        <th>Durum</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{range .RecentOrders}}
+                        <tr>
+                            <td><strong>#{{.ID}}</strong></td>
+                            <td><strong>{{.ProductName}}</strong></td>
+                            <td>{{.Quantity}} Adet</td>
+                            <td>{{.CreatedAt.Format "02.01.2006 15:04"}}</td>
+                            <td><span class="badge badge-success">✓ {{.Status}}</span></td>
+                        </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+            </div>
+        {{else}}
+            <div style="text-align: center; padding: 30px; color: var(--gray);">
+                Henüz verilmiş bir siparişiniz bulunmuyor. <a href="/product/crud/list" style="color: var(--primary);">Ürün Kataloğu</a>'ndan hemen sipariş verebilirsiniz.
+            </div>
+        {{end}}
     </div>
 </div>
 </body>
