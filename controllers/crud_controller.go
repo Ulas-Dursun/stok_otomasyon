@@ -29,7 +29,7 @@ func getTokenFromCookie(r *http.Request) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return cookie.Value, nil
+	return strings.TrimSpace(cookie.Value), nil
 }
 
 // callRustAPI Rust backend servisine JWT token ile HTTP isteği gönderen ortak yardımcı fonksiyon
