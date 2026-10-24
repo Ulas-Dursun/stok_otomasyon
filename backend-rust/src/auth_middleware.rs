@@ -76,7 +76,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
     if err.is_not_found() {
         error!("Error: NOT_FOUND");
         Ok(warp::reply::with_status("NOT_FOUND", StatusCode::NOT_FOUND))
-    } else if let Some(_) = err.find::<Unauthorized>() {
+    } else if err.find::<Unauthorized>().is_some() {
         error!("Authorization error: Unauthorized access.");
         Ok(warp::reply::with_status("UNAUTHORIZED", StatusCode::UNAUTHORIZED))
     } else {
