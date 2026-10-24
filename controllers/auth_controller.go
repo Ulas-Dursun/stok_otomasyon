@@ -210,6 +210,34 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
 
+type DashboardData struct {
+	Username      string
+	Role          string
+	TotalUsers    int64
+	TotalProducts int64
+	InStockCount  int64
+	TotalInfos    int64
+}
+
+func getDashboardData(claims *middleware.Claims) DashboardData {
+	data := DashboardData{
+		Username: claims.Username,
+		Role:     claims.Role,
+	}
+
+	if models.Client != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
+		data.TotalUsers, _ = models.UserCollection.CountDocuments(ctx, bson.M{})
+		data.TotalProducts, _ = models.Client.Database("product").Collection("product_db").CountDocuments(ctx, bson.M{})
+		data.InStockCount, _ = models.Client.Database("product").Collection("product_db").CountDocuments(ctx, bson.M{"stok_durumu": true})
+		data.TotalInfos, _ = models.Client.Database("info").Collection("info_db").CountDocuments(ctx, bson.M{})
+	}
+
+	return data
+}
+
 // Normal kullanıcı Dashboard sayfasını gösteren handler
 func ShowDashboard(w http.ResponseWriter, r *http.Request) {
 	claims, _ := middleware.GetClaims(r)
@@ -223,7 +251,9 @@ func ShowDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unable to load template", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, claims)
+
+	data := getDashboardData(claims)
+	tmpl.Execute(w, data)
 }
 
 // Admin Dashboard sayfasını gösteren handler
@@ -234,5 +264,7 @@ func ShowAdminDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unable to load template", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, claims)
+
+	data := getDashboardData(claims)
+	tmpl.Execute(w, data)
 }

@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kullanıcı Sil | Stok Otomasyonu</title>
     <link rel="stylesheet" href="/static/css/styles.css">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 </head>
 <body>
 <div class="auth-wrapper" style="max-width: 440px;">

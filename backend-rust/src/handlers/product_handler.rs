@@ -37,8 +37,15 @@ pub fn product_routes(
             .and(with_jwt_auth("superuser"))  // SuperUser can update products
             .and(warp::path::param())
             .and(warp::body::json())
-            .and(with_db(product_collection))
+            .and(with_db(product_collection.clone()))
             .and_then(handle_update_product)
+        )
+        .or(warp::path("order_product")
+            .and(warp::post())
+            .and(with_jwt_auth("normal"))  // Both normal and superuser can place order
+            .and(warp::path::param())
+            .and(with_db(product_collection))
+            .and_then(handle_order_product)
         )
 }
 
@@ -130,6 +137,35 @@ async fn handle_update_product(
         Err(e) => {
             eprintln!("Failed to update product: {:?}", e);
             Ok(warp::reply::json(&"Failed to update product"))
+        }
+    }
+}
+
+async fn handle_order_product(
+    product_id: String,
+    db: Collection<Product>
+) -> Result<impl warp::Reply, Infallible> {
+    let filter = doc! { "id": &product_id };
+    match db.find_one(filter.clone(), None).await {
+        Ok(Some(product)) => {
+            if product.miktar == 0 || !product.satis_durumu {
+                return Ok(warp::reply::json(&"Ürün stokta yok veya satışa kapalı"));
+            }
+            let new_miktar = product.miktar - 1;
+            let new_stok = new_miktar > 0;
+            let update = doc! {
+                "$set": {
+                    "miktar": new_miktar,
+                    "stok_durumu": new_stok,
+                }
+            };
+            let _ = db.update_one(filter, update, None).await;
+            Ok(warp::reply::json(&"Sipariş başarıyla oluşturuldu"))
+        }
+        Ok(None) => Ok(warp::reply::json(&"Ürün bulunamadı")),
+        Err(e) => {
+            eprintln!("Failed to order product: {:?}", e);
+            Ok(warp::reply::json(&"Sipariş oluşturulamadı"))
         }
     }
 }

@@ -3,21 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ürün Listesi | Stok Otomasyonu</title>
+    <title>Ürün Kataloğu & Stok | Stok Otomasyonu</title>
     <link rel="stylesheet" href="/static/css/styles.css">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateThemeButtonText();
+        }
+        function updateThemeButtonText() {
+            const btn = document.getElementById('theme-btn');
+            if (btn) {
+                const current = document.documentElement.getAttribute('data-theme');
+                btn.innerHTML = current === 'dark' ? '☀️ Gündüz' : '🌙 Gece';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateThemeButtonText);
+    </script>
 </head>
 <body>
 <div class="container">
     <div class="header-nav">
         <div>
-            <h2>📦 Ürün Listesi</h2>
-            <p style="color: var(--gray); font-size: 14px;">Market envanteri ve güncel stok durumu</p>
+            <h2>📦 Ürün Kataloğu & Stok Takip</h2>
+            <p style="color: var(--gray); font-size: 14px;">Market envanteri, anlık stok ve online sipariş</p>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <a href="/product/crud/add" class="btn btn-success btn-sm">+ Yeni Ürün</a>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="theme-btn" class="theme-toggle-btn" onclick="toggleTheme()">🌙 Gece</button>
+            <a href="/product/crud/add" class="btn btn-success btn-sm">+ Yeni Ürün Ekle</a>
             <a href="/dashboard" class="btn btn-outline btn-sm">Dashboard'a Dön</a>
         </div>
     </div>
+
+    <!-- Bildirim Mesajları -->
+    <div id="alert-box"></div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const alertBox = document.getElementById('alert-box');
+        if (urlParams.get('success') === 'siparis_verildi') {
+            alertBox.innerHTML = '<div class="alert alert-success">🎉 Siparişiniz başarıyla alındı ve Rust API tarafından stoktan 1 adet düşüldü!</div>';
+        } else if (urlParams.get('error') === 'siparis_hatasi') {
+            alertBox.innerHTML = '<div class="alert alert-danger">❌ Sipariş verilemedi. Ürün stokta tükenmiş olabilir!</div>';
+        }
+    </script>
 
     <div class="card" style="padding: 0; overflow: hidden;">
         <div class="table-responsive" style="margin: 0; border: none;">
@@ -26,10 +58,10 @@
                 <tr>
                     <th>ID</th>
                     <th>Ürün Adı</th>
-                    <th>Miktar</th>
+                    <th>Stok Miktarı</th>
                     <th>Stok Durumu</th>
                     <th>Satış Durumu</th>
-                    <th style="text-align: right;">İşlemler</th>
+                    <th style="text-align: right;">Sipariş & İşlemler</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -37,7 +69,9 @@
                     <tr>
                         <td><strong>#{{.ID}}</strong></td>
                         <td><strong>{{.Adi}}</strong></td>
-                        <td>{{.Miktar}} Adet</td>
+                        <td>
+                            <span style="font-weight: 600;">{{.Miktar}} Adet</span>
+                        </td>
                         <td>
                             {{if .StokDurumu}}
                                 <span class="badge badge-success">Mevcut</span>
@@ -53,13 +87,30 @@
                             {{end}}
                         </td>
                         <td style="text-align: right;">
-                            <a href="/product/crud/update" class="btn btn-outline btn-sm" style="padding: 4px 8px; font-size: 12px;">Düzenle</a>
-                            <a href="/product/crud/delete" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 12px;">Sil</a>
+                            <div style="display: flex; justify-content: flex-end; gap: 6px; align-items: center;">
+                                <!-- Sipariş Ver Butonu (Her kullanıcı için) -->
+                                {{if and .StokDurumu (gt .Miktar 0)}}
+                                    <form action="/product/order" method="POST" style="margin: 0;">
+                                        <input type="hidden" name="id" value="{{.ID}}">
+                                        <button type="submit" class="btn btn-primary btn-sm" style="padding: 5px 10px; font-size: 12px;">
+                                            🛒 1 Adet Al
+                                        </button>
+                                    </form>
+                                {{else}}
+                                    <button class="btn btn-outline btn-sm" disabled style="opacity: 0.5; padding: 5px 10px; font-size: 12px; cursor: not-allowed;">
+                                        Tükendi
+                                    </button>
+                                {{end}}
+
+                                <!-- Admin Yönetim Butonları -->
+                                <a href="/product/crud/update" class="btn btn-outline btn-sm" style="padding: 5px 10px; font-size: 12px;" title="Düzenle">✏️</a>
+                                <a href="/product/crud/delete" class="btn btn-danger btn-sm" style="padding: 5px 10px; font-size: 12px;" title="Sil">🗑️</a>
+                            </div>
                         </td>
                     </tr>
                 {{else}}
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 30px; color: var(--gray);">Envanterde henüz ürün bulunmuyor.</td>
+                        <td colspan="6" style="text-align: center; padding: 30px; color: var(--gray);">Katalogda henüz ürün bulunmuyor.</td>
                     </tr>
                 {{end}}
                 </tbody>

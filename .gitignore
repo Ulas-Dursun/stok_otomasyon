@@ -1,5 +1,6 @@
 # Binaries
 main
+server
 *.exe
 *.test
 *.out

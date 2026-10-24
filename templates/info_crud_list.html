@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Şube & İletişim Bilgileri | Stok Otomasyonu</title>
     <link rel="stylesheet" href="/static/css/styles.css">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateThemeButtonText();
+        }
+        function updateThemeButtonText() {
+            const btn = document.getElementById('theme-btn');
+            if (btn) {
+                const current = document.documentElement.getAttribute('data-theme');
+                btn.innerHTML = current === 'dark' ? '☀️ Gündüz' : '🌙 Gece';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateThemeButtonText);
+    </script>
 </head>
 <body>
 <div class="container">
@@ -13,7 +32,8 @@
             <h2>🏢 Şube & İletişim Listesi</h2>
             <p style="color: var(--gray); font-size: 14px;">Şubeler, iletişim numaraları ve çalışan sayıları</p>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="theme-btn" class="theme-toggle-btn" onclick="toggleTheme()">🌙 Gece</button>
             <a href="/info/crud/add" class="btn btn-success btn-sm">+ Yeni Bilgi</a>
             <a href="/dashboard" class="btn btn-outline btn-sm">Dashboard'a Dön</a>
         </div>

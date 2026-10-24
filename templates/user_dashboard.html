@@ -5,41 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kullanıcı Paneli | Stok Otomasyonu</title>
     <link rel="stylesheet" href="/static/css/styles.css">
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateThemeButtonText();
+        }
+        function updateThemeButtonText() {
+            const btn = document.getElementById('theme-btn');
+            if (btn) {
+                const current = document.documentElement.getAttribute('data-theme');
+                btn.innerHTML = current === 'dark' ? '☀️ Gündüz Modu' : '🌙 Gece Modu';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', updateThemeButtonText);
+    </script>
 </head>
 <body>
 <div class="container">
     <div class="header-nav">
         <div>
-            <h2>Kullanıcı Paneli</h2>
-            <p style="color: var(--gray); font-size: 14px;">Market Kataloğu & Bilgilendirme Sistemi</p>
+            <h2>👋 Hoş Geldiniz, {{.Username}}</h2>
+            <p style="color: var(--gray); font-size: 14px;">Market Ürün Kataloğu ve Sipariş Sistemi</p>
         </div>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="text-align: right;">
-                <strong>{{.Username}}</strong>
-                <div><span class="badge badge-user">Standart Kullanıcı</span></div>
-            </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button id="theme-btn" class="theme-toggle-btn" onclick="toggleTheme()">🌙 Gece Modu</button>
+            <div><span class="badge badge-user">Standart Kullanıcı</span></div>
             <a href="/logout" class="btn btn-danger btn-sm">Çıkış Yap</a>
         </div>
     </div>
 
+    <!-- İstatistik Kartları -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+                <h4>Katalogdaki Ürünler</h4>
+                <div class="stat-value">{{.TotalProducts}}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <h4>Hemen Teslim (Stokta)</h4>
+                <div class="stat-value" style="color: var(--success);">{{.InStockCount}}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🏢</div>
+            <div class="stat-info">
+                <h4>Hizmet Veren Şubeler</h4>
+                <div class="stat-value">{{.TotalInfos}}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kullanıcı Eylem Kartları -->
     <div class="dashboard-grid">
         <div class="action-card">
             <div>
-                <h3>📦 Ürün Kataloğu</h3>
-                <p>Markette bulunan güncel ürünleri, stok durumunu ve satış bilgilerini inceleyin.</p>
+                <h3>🛒 Ürün Kataloğu & Sipariş</h3>
+                <p>Envanterdeki tüm ürünleri inceleyin, güncel stok durumlarını görün ve doğrudan sipariş verin.</p>
             </div>
             <div>
-                <a href="/product/crud/list" class="btn btn-primary btn-block">Ürünleri Görüntüle</a>
+                <a href="/product/crud/list" class="btn btn-primary btn-block">Kataloğa Git & Sipariş Ver</a>
             </div>
         </div>
 
         <div class="action-card">
             <div>
                 <h3>🏢 Şube & İletişim Bilgileri</h3>
-                <p>Şube adresleri ve iletişim telefonlarını görüntüleyin.</p>
+                <p>Market şubelerimizin adreslerini ve telefon numaralarını görüntüleyin.</p>
             </div>
             <div>
-                <a href="/info/crud/list" class="btn btn-primary btn-block">Bilgileri Görüntüle</a>
+                <a href="/info/crud/list" class="btn btn-outline btn-block">Şubeleri Görüntüle</a>
             </div>
         </div>
     </div>

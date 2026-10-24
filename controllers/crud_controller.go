@@ -190,6 +190,34 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/product/crud/list", http.StatusSeeOther)
 }
 
+// OrderProduct kullanıcının katalogdan 1 adet sipariş vermesini ve stoktan düşülmesini sağlar
+func OrderProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/product/crud/list", http.StatusSeeOther)
+		return
+	}
+
+	token, err := getTokenFromCookie(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	productID := strings.TrimSpace(r.FormValue("id"))
+	if productID == "" {
+		http.Redirect(w, r, "/product/crud/list", http.StatusSeeOther)
+		return
+	}
+
+	_, status, err := callRustAPI(http.MethodPost, "/order_product/"+productID, token, nil)
+	if err != nil || status != http.StatusOK {
+		http.Redirect(w, r, "/product/crud/list?error=siparis_hatasi", http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/product/crud/list?success=siparis_verildi", http.StatusSeeOther)
+}
+
 // --- Info CRUD Handlers ---
 
 func ShowInfoCrud(w http.ResponseWriter, r *http.Request) {

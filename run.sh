@@ -9,7 +9,7 @@ echo -e "${BLUE}==================================================${NC}"
 echo -e "${BLUE}   🛒 Stok & Market Otomasyonu (Go + Rust)        ${NC}"
 echo -e "${BLUE}==================================================${NC}"
 
-# Rust Backend Başlat
+# Rust Backend Başlat (:3030)
 echo -e "${GREEN}[1/2] 🦀 Rust REST API (:3030) başlatılıyor...${NC}"
 (cd backend-rust && cargo run) &
 RUST_PID=$!
@@ -25,8 +25,10 @@ trap cleanup SIGINT SIGTERM EXIT
 # Rust'ın ayağa kalkması için kısa bir bekleme
 sleep 2
 
-# Go Frontend Başlat
-echo -e "${GREEN}[2/2] 🐹 Go Web Sunucusu (:8080) başlatılıyor...${NC}"
+# Go Frontend Derle ve Başlat (:8080)
+echo -e "${GREEN}[2/2] 🐹 Go Web Sunucusu (:8080) derlenip başlatılıyor...${NC}"
+CGO_ENABLED=0 go build -o server .
+codesign -s - -f ./server 2>/dev/null || true
 echo -e "${BLUE}👉 Tarayıcınızdan açın: http://localhost:8080${NC}"
 echo -e "${BLUE}==================================================${NC}"
-go run main.go
+./server
