@@ -1,0 +1,16 @@
+# Binaries
+main
+*.exe
+*.test
+*.out
+
+# Environment & Secrets
+.env
+
+# IDE / Editor
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

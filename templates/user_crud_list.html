@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Listesi | Stok Otomasyonu</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="container">
+    <div class="header-nav">
+        <div>
+            <h2>👥 Kullanıcı Listesi</h2>
+            <p style="color: var(--gray); font-size: 14px;">Sistemde kayıtlı tüm kullanıcılar</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="/user/crud/add" class="btn btn-success btn-sm">+ Yeni Kullanıcı</a>
+            <a href="/admin/dashboard" class="btn btn-outline btn-sm">Dashboard'a Dön</a>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive" style="margin: 0; border: none;">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ad Soyad</th>
+                    <th>Yaş</th>
+                    <th>Cinsiyet</th>
+                    <th>Kullanıcı Adı</th>
+                    <th>Yetki / Rol</th>
+                    <th style="text-align: right;">İşlemler</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{range .}}
+                    <tr>
+                        <td><strong>#{{.ID}}</strong></td>
+                        <td>{{.Ad}} {{.Soyad}}</td>
+                        <td>{{.Yas}}</td>
+                        <td>{{.Cinsiyet}}</td>
+                        <td><code>{{.KullaniciAdi}}</code></td>
+                        <td>
+                            {{if eq .Role "superuser"}}
+                                <span class="badge badge-admin">Superuser</span>
+                            {{else}}
+                                <span class="badge badge-user">Normal</span>
+                            {{end}}
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="/user/crud/update" class="btn btn-outline btn-sm" style="padding: 4px 8px; font-size: 12px;">Düzenle</a>
+                            <a href="/user/crud/delete" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 12px;">Sil</a>
+                        </td>
+                    </tr>
+                {{else}}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 30px; color: var(--gray);">Kayıtlı kullanıcı bulunamadı.</td>
+                    </tr>
+                {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

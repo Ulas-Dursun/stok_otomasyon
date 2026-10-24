@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeni Bilgi Ekle | Stok Otomasyonu</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="auth-wrapper" style="max-width: 500px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🏢 Yeni Şube / Bilgi Ekle</h2>
+            <a href="/info/crud/list" class="btn btn-outline btn-sm">Listeye Dön</a>
+        </div>
+
+        <form action="/perform_crud" method="POST">
+            <input type="hidden" name="entity" value="info">
+            <input type="hidden" name="operation" value="create">
+
+            <div class="form-group">
+                <label for="adres">Şube Adresi</label>
+                <input type="text" id="adres" name="adres" placeholder="Örn: Kadıköy Mah. Moda Cad. No:12 İstanbul" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="telefon">Telefon Numarası</label>
+                <input type="text" id="telefon" name="telefon" placeholder="Örn: 0212 555 1234" required>
+            </div>
+
+            <div class="form-group">
+                <label for="calisan_sayisi">Çalışan Sayısı (Personel)</label>
+                <input type="number" id="calisan_sayisi" name="calisan_sayisi" min="1" placeholder="15" required>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-block" style="margin-top: 10px;">Bilgiyi Kaydet</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

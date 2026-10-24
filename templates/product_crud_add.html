@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeni Ürün Ekle | Stok Otomasyonu</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="auth-wrapper" style="max-width: 500px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">📦 Yeni Ürün Ekle</h2>
+            <a href="/product/crud/list" class="btn btn-outline btn-sm">Listeye Dön</a>
+        </div>
+
+        <form action="/perform_crud" method="POST">
+            <input type="hidden" name="entity" value="product">
+            <input type="hidden" name="operation" value="create">
+
+            <div class="form-group">
+                <label for="adi">Ürün Adı</label>
+                <input type="text" id="adi" name="adi" placeholder="Örn: Organik Süt 1L" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="miktar">Stok Miktarı (Adet)</label>
+                <input type="number" id="miktar" name="miktar" min="0" placeholder="100" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label for="stok_durumu">Stok Durumu</label>
+                    <select id="stok_durumu" name="stok_durumu">
+                        <option value="true">Mevcut (true)</option>
+                        <option value="false">Tükendi (false)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="satis_durumu">Satış Durumu</label>
+                    <select id="satis_durumu" name="satis_durumu">
+                        <option value="true">Satışta (true)</option>
+                        <option value="false">Satış Dışı (false)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-block" style="margin-top: 10px;">Ürünü Kaydet</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

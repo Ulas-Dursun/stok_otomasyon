@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Güncelle | Stok Otomasyonu</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="auth-wrapper" style="max-width: 500px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">✏️ Ürün Güncelle</h2>
+            <a href="/product/crud/list" class="btn btn-outline btn-sm">Listeye Dön</a>
+        </div>
+
+        <form action="/perform_crud" method="POST">
+            <input type="hidden" name="entity" value="product">
+            <input type="hidden" name="operation" value="update">
+
+            <div class="form-group">
+                <label for="id">Ürün ID (#)</label>
+                <input type="text" id="id" name="id" placeholder="Güncellenecek ürün ID'si (Örn: 1)" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="adi">Yeni Ürün Adı</label>
+                <input type="text" id="adi" name="adi" placeholder="Yeni ürün adı" required>
+            </div>
+
+            <div class="form-group">
+                <label for="miktar">Yeni Miktar (Adet)</label>
+                <input type="number" id="miktar" name="miktar" min="0" placeholder="100" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label for="stok_durumu">Stok Durumu</label>
+                    <select id="stok_durumu" name="stok_durumu">
+                        <option value="true">Mevcut (true)</option>
+                        <option value="false">Tükendi (false)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="satis_durumu">Satış Durumu</label>
+                    <select id="satis_durumu" name="satis_durumu">
+                        <option value="true">Satışta (true)</option>
+                        <option value="false">Satış Dışı (false)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top: 10px;">Değişiklikleri Kaydet</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

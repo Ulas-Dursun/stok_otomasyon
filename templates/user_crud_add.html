@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeni Kullanıcı Ekle | Stok Otomasyonu</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="auth-wrapper" style="max-width: 500px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">👥 Yeni Kullanıcı Ekle</h2>
+            <a href="/user/crud/list" class="btn btn-outline btn-sm">Listeye Dön</a>
+        </div>
+
+        <form action="/perform_crud" method="POST">
+            <input type="hidden" name="entity" value="user">
+            <input type="hidden" name="operation" value="create">
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label for="ad">Ad</label>
+                    <input type="text" id="ad" name="ad" placeholder="Ad" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="soyad">Soyad</label>
+                    <input type="text" id="soyad" name="soyad" placeholder="Soyad" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="form-group">
+                    <label for="yas">Yaş</label>
+                    <input type="number" id="yas" name="yas" min="1" placeholder="24" required>
+                </div>
+                <div class="form-group">
+                    <label for="cinsiyet">Cinsiyet</label>
+                    <select id="cinsiyet" name="cinsiyet" required>
+                        <option value="Erkek">Erkek</option>
+                        <option value="Kadın">Kadın</option>
+                        <option value="Belirtilmemiş">Belirtilmemiş</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="kullanici_adi">Kullanıcı Adı</label>
+                <input type="text" id="kullanici_adi" name="kullanici_adi" placeholder="kullanici_adi" required>
+            </div>
+
+            <div class="form-group">
+                <label for="sifre">Şifre</label>
+                <input type="password" id="sifre" name="sifre" placeholder="••••••••" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Yetki / Rol</label>
+                <select id="role" name="role">
+                    <option value="normal">Normal Kullanıcı</option>
+                    <option value="superuser">Superuser (Admin)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-block" style="margin-top: 10px;">Kullanıcıyı Kaydet</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

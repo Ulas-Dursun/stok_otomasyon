@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Şube & İletişim Bilgileri | Stok Otomasyonu</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="container">
+    <div class="header-nav">
+        <div>
+            <h2>🏢 Şube & İletişim Listesi</h2>
+            <p style="color: var(--gray); font-size: 14px;">Şubeler, iletişim numaraları ve çalışan sayıları</p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="/info/crud/add" class="btn btn-success btn-sm">+ Yeni Bilgi</a>
+            <a href="/dashboard" class="btn btn-outline btn-sm">Dashboard'a Dön</a>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive" style="margin: 0; border: none;">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Adres</th>
+                    <th>Telefon</th>
+                    <th>Çalışan Sayısı</th>
+                    <th style="text-align: right;">İşlemler</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{range .}}
+                    <tr>
+                        <td><strong>#{{.ID}}</strong></td>
+                        <td>{{.Adres}}</td>
+                        <td><a href="tel:{{.Telefon}}" style="color: var(--primary); text-decoration: none;">{{.Telefon}}</a></td>
+                        <td><span class="badge badge-user">{{.CalisanSayisi}} Personel</span></td>
+                        <td style="text-align: right;">
+                            <a href="/info/crud/update" class="btn btn-outline btn-sm" style="padding: 4px 8px; font-size: 12px;">Düzenle</a>
+                            <a href="/info/crud/delete" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 12px;">Sil</a>
+                        </td>
+                    </tr>
+                {{else}}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px; color: var(--gray);">Kayıtlı bilgi bulunamadı.</td>
+                    </tr>
+                {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

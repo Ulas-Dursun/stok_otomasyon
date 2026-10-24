@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilgi Güncelle | Stok Otomasyonu</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="auth-wrapper" style="max-width: 500px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">✏️ Şube / Bilgi Güncelle</h2>
+            <a href="/info/crud/list" class="btn btn-outline btn-sm">Listeye Dön</a>
+        </div>
+
+        <form action="/perform_crud" method="POST">
+            <input type="hidden" name="entity" value="info">
+            <input type="hidden" name="operation" value="update">
+
+            <div class="form-group">
+                <label for="id">Bilgi ID (#)</label>
+                <input type="text" id="id" name="id" placeholder="Güncellenecek bilgi ID'si (Örn: 1)" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="adres">Yeni Adres</label>
+                <input type="text" id="adres" name="adres" placeholder="Yeni adres" required>
+            </div>
+
+            <div class="form-group">
+                <label for="telefon">Yeni Telefon</label>
+                <input type="text" id="telefon" name="telefon" placeholder="0212 555 1234" required>
+            </div>
+
+            <div class="form-group">
+                <label for="calisan_sayisi">Yeni Çalışan Sayısı</label>
+                <input type="number" id="calisan_sayisi" name="calisan_sayisi" min="1" placeholder="20" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top: 10px;">Değişiklikleri Kaydet</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

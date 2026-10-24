@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Paneli | Stok Otomasyonu</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="container">
+    <div class="header-nav">
+        <div>
+            <h2>Kullanıcı Paneli</h2>
+            <p style="color: var(--gray); font-size: 14px;">Market Kataloğu & Bilgilendirme Sistemi</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="text-align: right;">
+                <strong>{{.Username}}</strong>
+                <div><span class="badge badge-user">Standart Kullanıcı</span></div>
+            </div>
+            <a href="/logout" class="btn btn-danger btn-sm">Çıkış Yap</a>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="action-card">
+            <div>
+                <h3>📦 Ürün Kataloğu</h3>
+                <p>Markette bulunan güncel ürünleri, stok durumunu ve satış bilgilerini inceleyin.</p>
+            </div>
+            <div>
+                <a href="/product/crud/list" class="btn btn-primary btn-block">Ürünleri Görüntüle</a>
+            </div>
+        </div>
+
+        <div class="action-card">
+            <div>
+                <h3>🏢 Şube & İletişim Bilgileri</h3>
+                <p>Şube adresleri ve iletişim telefonlarını görüntüleyin.</p>
+            </div>
+            <div>
+                <a href="/info/crud/list" class="btn btn-primary btn-block">Bilgileri Görüntüle</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
