@@ -1,4 +1,4 @@
-# 🛒 Stok & Market Otomasyon Sistemi
+# 🛒 Stock & Market Automation System
 
 [![Go Version](https://img.shields.io/badge/Go-1.23-00ADD8?style=flat&logo=go)](https://golang.org)
 [![Rust Version](https://img.shields.io/badge/Rust-1.83-black?style=flat&logo=rust)](https://www.rust-lang.org)
@@ -7,180 +7,185 @@
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen?style=flat)]()
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)]()
 
-Üniversite 3. sınıf stajım süresince geliştirdiğim; **Go (BFF - Backend-For-Frontend)** ve **Rust (Core REST API)** servislerinin birlikte çalıştığı, **MongoDB** tabanlı modern bir stok ve market otomasyon projesidir.
+A polyglot distributed inventory and retail automation system developed during my **3rd-year university software engineering internship at Sanlab**. The project combines a **Go BFF (Backend-For-Frontend) Gateway** and a **Rust Core REST API** running alongside **MongoDB**.
 
 ---
 
-## 📌 Projenin Amacı & Staj Hikayesi
+## 📌 Project Background & Motivation
 
-Staj dönemimde şirketin (Sanlab) teknoloji yığınındaki farklı sistemleri deneyimlerken klasik monolitik tek-dil yaklaşımı yerine; **mikroservis mimarisini**, **poliglot (çok dilli) servis iletişimini** ve **durumsuz (stateless) kimlik doğrulamasını** pratiğe dökmeyi hedefledim:
+During my internship, rather than building a standard monolithic single-language CRUD app, I wanted to explore how real-world distributed architectures handle multi-language microservices, stateless security, and strict data consistency:
 
-* **Go Katmanı (Port `:8080`):** Yüksek I/O hızı, goroutine tabanlı eşzamanlılık ve pratik şablon motoruyla istemciyi karşılayan, oturum (JWT Cookie) ve arayüz yönetimini üstlenen bir **API Gateway / BFF** olarak konumlandı.
-* **Rust Katmanı (Port `:3030`):** Bellek güvenliği (memory safety), sıfır çöp toplayıcı (zero-GC) gecikmesi ve veri tutarlılığı gerektiren kritik envanter, stok düşümü ve sayaç transaksiyonlarını yöneten yüksek performanslı bir **Core REST API (Warp)** servisi olarak geliştirildi.
-* **MongoDB:** Ayrık koleksiyon yapısı (`user_db`, `product_db`, `info_db`, `counters`, `orders`) ile sistem verilerini esnek ve hızlı bir biçimde saklamak için kullanıldı.
+* **Go Layer (Port `:8080`):** Acts as an **API Gateway & BFF**. It handles client HTTP traffic, manages session tokens (JWT cookies), renders Server-Side (SSR) HTML templates, and enforces Role-Based Access Control (RBAC). Go's lightweight concurrency (Goroutines) and rapid I/O make it ideal for this edge role.
+* **Rust Layer (Port `:3030`):** Operates as the **Core Domain Microservice** using the high-performance **Warp** web framework. It manages critical inventory operations, atomic stock decrements, sequence counters, and inventory health. Rust was chosen for its memory safety, zero-cost abstractions, and deterministic execution without garbage collector pauses.
+* **MongoDB:** Serves as the persistence layer across segmented databases (`user`, `product`, `info`, and `market_otomasyon`), ensuring fast lookups and atomic document updates.
 
 ---
 
-## 🏗️ Sistem Mimarisi
+## 🏗️ System Architecture
 
-İstemciden veritabanına uzanan istek ve yetkilendirme akışı:
+The following diagram illustrates the end-to-end request lifecycle and authentication boundary:
 
 ```mermaid
 flowchart TD
-    Client["🌐 Web Tarayıcısı (İstemci)"] -->|1. HTTP İstekleri / JWT Cookie| GoBFF["🐹 Go BFF Gateway (:8080)<br/>• Session & Cookie Yönetimi<br/>• SSR Arayüz Render (HTML Templates)<br/>• Rol & Sayfa Filtreleme"]
+    Client["🌐 Web Browser (Client)"] -->|1. HTTP Requests / JWT Cookie| GoBFF["🐹 Go BFF Gateway (:8080)<br/>• Session & Cookie Management<br/>• SSR Template Engine (HTML/CSS)<br/>• Role & Route Guarding"]
     
-    GoBFF -->|2. Bearer JWT ile REST Çağrıları| RustCore["🦀 Rust Core API (:3030 - Warp)<br/>• Kriptografik Token Doğrulama<br/>• Kritik Stok & Envanter Mantığı<br/>• Atomik ID Sayacı (Counters)"]
+    GoBFF -->|2. REST Calls with Bearer JWT| RustCore["🦀 Rust Core API (:3030 - Warp)<br/>• Cryptographic JWT Validation<br/>• Inventory & Stock Business Logic<br/>• Atomic Sequence Generator (Counters)"]
     
-    GoBFF -->|Kullanıcı Auth & Sipariş Geçmişi| MongoDB[("🍃 MongoDB (:27017)<br/>user, product, info, market_otomasyon")]
-    RustCore -->|Stok Düşümü & Restock İşlemleri| MongoDB
+    GoBFF -->|User Auth & Order History| MongoDB[("🍃 MongoDB (:27017)<br/>user, product, info, market_otomasyon")]
+    RustCore -->|Atomic Stock Decrement & Restock| MongoDB
 ```
 
 ---
 
-## ✨ Öne Çıkan Özellikler
+## ✨ Key Features
 
-### 1. 🔐 Rol Tabanlı Yetkilendirme (RBAC) & Super Key Mekanizması
-- Sistemde **Superuser (Admin)** ve **Normal Kullanıcı** olmak üzere 2 farklı rol bulunur.
-- Kayıt olurken (`/register`) gizli **Super Key (`super123`)** giren kişiler doğrudan Superuser yetkisiyle açılır; girmeyenler ise standart müşteri/kullanıcı olur.
-- Go tarafında üretilen HMAC-SHA256 imzalı JWT token'lar, Rust Core API tarafından çözülüp doğrulanarak servisler arası uçtan uca yetki kontrolü sağlanır.
+### 1. 🔐 Role-Based Access Control (RBAC) & Super Key Concept
+- Supports two primary roles: **Superuser (Admin)** and **Normal User**.
+- Registration form (`/register`) includes an optional **Super Key (`super123`)** field:
+  - Entering the key automatically grants administrative privileges.
+  - Leaving it blank creates a standard customer account.
+- Authentication utilizes HMAC-SHA256 JWT tokens created by Go and cryptographically verified by Rust's authentication filter for seamless cross-service authorization.
 
-### 2. 🛍️ Ürün Kataloğu & Anlık Stoktan Düşüm (Order Flow)
-- Kullanıcılar katalogdaki ürünleri inceler ve tek tıkla `🛒 1 Adet Al` diyerek sipariş verebilir.
-- İstek Go üzerinden Rust'a aktarılır; Rust atomik olarak ürün stoğunu `1` azaltır ve stok bittiğinde ürünü otomatik olarak `Tükendi` moduna alır.
-- Başarılı siparişler kullanıcının ve sistemin **Sipariş Geçmişi** tablosuna tarih ve durum bilgisiyle işlenir.
+### 2. 🛍️ Real-Time Product Catalog & Atomic Order Flow
+- Users can browse the catalog and place orders via `🛒 1 Adet Al`.
+- Go dispatches the order to Rust (`POST /order_product/:id`).
+- Rust atomically decrements the stock (`miktar - 1`) and automatically transitions the product status to `Tükendi (Out of Stock)` when inventory hits zero.
+- Confirmed orders are stored in the MongoDB `orders` collection with timestamps and status tracking.
 
-### 3. ⚠️ Kritik Stok Uyarısı & Hızlı Stok Ekleme (+10)
-- Stoğu $\le 3$ olan ürünlerin yanında parlayan turuncu `⚠️ Kritik Stok` rozeti çıkar.
-- Yöneticiler için her ürün satırında `+10 Stok` butonu bulunur; yönetici tek tıkla Rust REST API üzerinden ürüne 10 adet stok ekleyebilir.
+### 3. ⚠️ Critical Stock Alerts & Quick Admin Restock (+10)
+- Products with remaining stock $\le 3$ display a glowing `⚠️ Kritik (X Adet)` badge.
+- Out-of-stock items display a `⛔ Tükendi` badge and disable purchase buttons.
+- Admins have access to a quick-action `+10 Stok` button that triggers Rust's `/restock_product/:id` endpoint to instantly replenishment inventory.
 
-### 4. 📊 Dinamik KPI Dashboard & İstatistikler
-- MongoDB üzerindeki canlı verilerle beslenen istatistik kartları:
-  - *Toplam Kullanıcı*, *Toplam Ürün*, *Stoktaki Ürünler*, *Hizmet Veren Şubeler*, *Sipariş Sayısı*.
-- Normal kullanıcılar kendi verdikleri son siparişleri, yöneticiler ise sistem genelindeki tüm sipariş hareketlerini anlık takip edebilir.
+### 4. 📊 Dynamic KPI Dashboard & Order History
+- Live metric cards tracking:
+  - *Total Users*, *Total Products*, *In-Stock Count*, *Active Branches*, and *Total Orders*.
+- Normal users can view their personal **"Son Siparişlerim (Order History)"** table.
+- Admins have real-time visibility over system-wide customer order activities.
 
-### 5. 🌓 Gece / Gündüz Modu (Dark & Light Theme)
-- Tüm sayfalarda (Giriş, Kayıt, Dashboard'lar ve CRUD ekranları) çalışan, `localStorage` üzerinde kullanıcının tercihini hatırlayan kesintisiz Dark Mode desteği.
-
----
-
-## 💡 Mülakat Notları & Sıkça Sorulan Sorular
-
-Mülakatlarda bu projeyle ilgili gelebilecek sorulara yaklaşımım:
-
-<details>
-<summary><b>1. Neden Go ve Rust dillerini aynı projede birleştirdin?</b></summary>
-
-> Go, standart kütüphanesindeki zengin `net/http` paketi, hızlı goroutine çalışma zamanı ve SSR şablon desteği sayesinde harika bir API Gateway / BFF aracıdır. Diğer yanda Rust; sahiplik (ownership) modeli, derleme zamanı bellek garantileri ve deterministik performansı ile finans veya envanter gibi *"veri kaybına / yarış durumuna (race condition) tahammülü olmayan"* kritik iş mantıklarını işletmek için idealdir. Stajımda bu iki gücü tek mimaride birleştirmeyi hedefledim.
-</details>
-
-<details>
-<summary><b>2. İki servis arasında kimlik doğrulaması nasıl yapılıyor?</b></summary>
-
-> İki servis ortak bir simetrik anahtar (`JWT_SECRET_KEY`) paylaşır. Kullanıcı Go üzerinden giriş yaptığında SHA-256 ile şifre doğrulanır ve Go tarafından bir JWT üretilir. Go, Rust servisine HTTP çağrısı yaparken bu token'ı `Authorization: Bearer <token>` başlığıyla iletir. Rust katmanında yazdığım Warp filter middleware'i bu token'ı doğrular ve kullanıcının rolünü (`superuser` / `normal`) çözerek yetki kontrolünü servis seviyesinde yapar.
-</details>
-
-<details>
-<summary><b>3. MongoDB'de ID yönetimini nasıl sağladınız?</b></summary>
-
-> Klasik MongoDB `ObjectId` string'leri yerine kullanıcı dostu sıralı ID'ler üretmek adına `market_otomasyon.counters` koleksiyonu kullandık. Hem Go hem Rust tarafında `FindOneAndUpdate` ile `$inc: {seq: 1}` çalıştırılarak atomik sıralı ID üretimi sağlandı.
-</details>
+### 5. 🌓 Dark & Light Mode
+- Clean, eye-friendly Dark Mode built with native CSS custom properties (`--bg-primary`, `--card-bg`, etc.).
+- Persists user preferences seamlessly across all views (Dashboard, Catalog, CRUD forms) via `localStorage` without page-flicker.
 
 ---
 
-## 🚀 Kurulum & Çalıştırma
+## 💡 Architecture Decisions & Technical FAQ
 
-### Gereksinimler
+<details>
+<summary><b>1. Why use both Go and Rust in the same application?</b></summary>
+
+> Go is exceptional at networking, concurrent I/O, and fast HTTP routing, making it an outstanding front-facing API Gateway and BFF. Rust, on the other hand, provides compile-time memory safety, zero-cost abstractions, and predictable latency without garbage collection stops. By delegating inventory transactions and counter generation to Rust while letting Go handle client traffic and HTML presentation, the system demonstrates the strengths of a polyglot microservice architecture.
+</details>
+
+<details>
+<summary><b>2. How is cross-service security handled without a shared database session?</b></summary>
+
+> Both services share a symmetric secret key (`JWT_SECRET_KEY`). When a user authenticates in Go, a signed JWT containing their `username` and `role` is generated and returned via an `HttpOnly` cookie. Whenever Go needs to interact with Rust, it extracts the token and includes it in the `Authorization: Bearer <token>` header. Rust's Warp filter decodes and validates the claims, ensuring that only authorized roles can invoke protected endpoints.
+</details>
+
+<details>
+<summary><b>3. How are sequential IDs generated in MongoDB?</b></summary>
+
+> Instead of exposing raw 24-character hex `ObjectId` strings to users, the system implements a sequence counter pattern stored in `market_otomasyon.counters`. Both Go and Rust invoke `FindOneAndUpdate` with `$inc: { "seq": 1 }` to produce safe, sequential IDs (`1, 2, 3...`) in an atomic operation.
+</details>
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
 - **Go:** `1.22+`
 - **Rust & Cargo:** `1.80+`
-- **MongoDB:** `localhost:27017` (veya Docker)
+- **MongoDB:** `localhost:27017` (or via Docker)
 
-### 1. Hızlı Başlatma (Tavsiye Edilen)
-Proje kök dizinindeki başlatma betiği hem Go hem Rust servislerini derleyip otomatik başlatır:
+### 1. Quick Start (Recommended)
+Use the included startup script to launch both Go and Rust with a single command:
 
 ```bash
 chmod +x run.sh
 ./run.sh
 ```
-*veya alternatif olarak:*
+*or using Makefile:*
 ```bash
 make run
 ```
 
-* Go Arayüzü: `http://localhost:8080`
-* Rust Core API: `http://localhost:3030`
+- **Go Web UI:** `http://localhost:8080`
+- **Rust Core API:** `http://localhost:3030`
 
 ---
 
-### 2. Docker Compose ile Başlatma
-Sistemde Go veya Rust kurulu olmadan doğrudan konteynerler üzerinden çalıştırmak için:
+### 2. Running with Docker Compose
+To run the entire polyglot stack inside isolated containers:
 
 ```bash
 docker compose up --build -d
 ```
-*Durdurmak için:*
+*To stop the containers:*
 ```bash
 docker compose down
 ```
 
 ---
 
-### 3. Testleri Çalıştırma
-Projeye eklediğimiz birim testleri (şifre hashleme, Super Key denetimi, JWT oluşturma, ürün serileştirme ve stok tükenme simülasyonu) tek komutla koşabilirsiniz:
+### 3. Running Unit Tests
+Execute the automated test suites for both Go and Rust:
 
 ```bash
 make test
 ```
+*Runs Go unit tests (password hashing, Super Key checks, JWT claims) and Rust tests (product serialization, stock depletion).*
 
 ---
 
-## 🔑 Varsayılan Giriş & Test Bilgileri
+## 🔑 Default Credentials
 
-Sistemi hemen deneyebilmeniz için veritabanında hazır bulunan kullanıcı bilgileri:
+The database comes pre-seeded with initial records:
 
-| Rol | Kullanıcı Adı | Şifre | Yetki Kapsamı |
+| Role | Username | Password | Privileges |
 | :--- | :--- | :--- | :--- |
-| **Yönetici (Superuser)** | `admin` | `1234` | Tüm kullanıcı, ürün ve şube CRUD işlemleri, hızlı stok ekleme, tüm siparişleri görme |
-| **Normal Kullanıcı** | `/register` sayfasından açılabilir | Belirleyeceğiniz şifre | Ürün kataloğunu görme, sipariş verme, kendi sipariş geçmişini inceleme |
-| **Yönetici Kayıt Anahtarı** | `super123` | *(Kayıt esnasında girilirse hesabı Admin yapar)* |
+| **Admin (Superuser)** | `admin` | `1234` | Full CRUD operations, quick restock (+10), all orders visibility |
+| **Normal User** | Register at `/register` | Custom | Browse product catalog, place orders, personal order history |
+| **Admin Super Key** | `super123` | — | Grants Superuser privileges during registration |
 
 ---
 
-## 📁 Proje Dizin Yapısı
+## 📁 Repository Structure
 
 ```text
-stok-otomasyon/
-├── main.go                       # Go BFF Sunucu Giriş Noktası (:8080)
-├── run.sh                        # Tek tıkla Go ve Rust'ı başlatan betik
-├── Makefile                      # make run, make test, make docker-up komutları
-├── Dockerfile                    # Go için çok aşamalı (multi-stage) Dockerfile
-├── docker-compose.yml            # Go + Rust + MongoDB orkestrasyonu
+stok_otomasyon/
+├── main.go                       # Go BFF Server Entrypoint (:8080)
+├── run.sh                        # Automation script to run Go + Rust concurrently
+├── Makefile                      # Targets for run, test, and docker-up
+├── Dockerfile                    # Multi-stage Dockerfile for Go
+├── docker-compose.yml            # Go + Rust + MongoDB orchestration
 │
-├── controllers/                  # Go HTTP İstek Yöneticileri (Auth, CRUD, Sipariş)
-│   └── auth_controller_test.go   # Go Birim Testleri
-├── middleware/                   # JWT & Rol Tabanlı Erişim Kontrolü (RBAC)
-├── models/                       # Go Veri Modelleri (User, Product, Info, Order)
-├── routes/                       # Go Web ve API Rota Tanımları
-├── static/                       # CSS, Gece/Gündüz Teması ve Tasarım Dosyaları
-├── templates/                    # Go HTML Şablonları (Dashboard, CRUD Ekranları)
+├── controllers/                  # Go HTTP Handlers (Auth, CRUD, Orders)
+│   └── auth_controller_test.go   # Go Unit Tests
+├── middleware/                   # JWT & RBAC Route Protection Middleware
+├── models/                       # Go Data Models (User, Product, Info, Order)
+├── routes/                       # Web & API Route Registration
+├── static/                       # CSS Variables, Dark Mode & Asset Files
+├── templates/                    # Go HTML Templates (Dashboards, Catalog, CRUD)
 │
-└── backend-rust/                 # Rust Warp Core REST API (:3030)
-    ├── Cargo.toml                # Rust Paket Bağımlılıkları
-    ├── Dockerfile                # Rust için çok aşamalı Dockerfile
+└── backend-rust/                 # Rust Core REST API (:3030)
+    ├── Cargo.toml                # Rust Dependencies
+    ├── Dockerfile                # Multi-stage Dockerfile for Rust
     └── src/
-        ├── main.rs               # Rust API Giriş Noktası & Warp Server
-        ├── auth_middleware.rs    # JWT Bearer Token Doğrulayıcı Filter
-        ├── handlers/             # Ürün, Kullanıcı ve Şube REST Handler'ları
-        ├── models/               # Rust Struct Modelleri & Unit Testler
-        ├── services/             # Sıralı Sayaç (Counter) Servisi
-        └── db/                   # MongoDB İstemci Bağlantısı
+        ├── main.rs               # Rust API Entrypoint & Warp HTTP Server
+        ├── auth_middleware.rs    # JWT Bearer Token Validation Filter
+        ├── handlers/             # Product, User, and Info REST Handlers
+        ├── models/               # Rust Structs & Embedded Unit Tests
+        ├── services/             # Atomic Sequence Counter Service
+        └── db/                   # MongoDB Client Connection
 ```
 
 ---
 
-## 👨‍💻 Geliştirici
+## 👨‍💻 Author
 
 **Ulaş Dursun**  
-*Bilgisayar Mühendisliği Öğrencisi*  
+*Computer Engineering Student*  
 GitHub: [@Ulas-Dursun](https://github.com/Ulas-Dursun)
 
-*Staj çalışmam süresince bana yol gösteren mentorlerime ve Sanlab ekibine teşekkür ederim.*
+*Special thanks to my internship mentors and the Sanlab engineering team for their guidance.*

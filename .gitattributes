@@ -1,0 +1,16 @@
+# GitHub Linguist Overrides
+# Exclude HTML templates, CSS, and helper scripts from GitHub language stats
+# This ensures GitHub displays the repository as pure Go and Rust
+
+templates/** linguist-detectable=false
+templates/** linguist-vendored=true
+static/** linguist-detectable=false
+static/** linguist-vendored=true
+*.html linguist-detectable=false
+*.html linguist-vendored=true
+*.css linguist-detectable=false
+*.css linguist-vendored=true
+run.sh linguist-detectable=false
+Makefile linguist-detectable=false
+Dockerfile linguist-detectable=false
+backend-rust/Dockerfile linguist-detectable=false
