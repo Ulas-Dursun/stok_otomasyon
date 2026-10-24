@@ -1,0 +1,28 @@
+# Rust Build Artifacts
+target/
+**/*.rs.bk
+
+# Go Build Artifacts
+frontend-go/main
+frontend-go/*.exe
+frontend-go/*.test
+frontend-go/*.out
+
+# Environment & Secrets (Asla GitHub'a yüklenmemeli)
+.env
+.env.rs
+
+# IDE & Editor Settings
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

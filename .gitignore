@@ -4,8 +4,13 @@ main
 *.test
 *.out
 
+# Rust Build Artifacts
+backend-rust/target/
+target/
+
 # Environment & Secrets
 .env
+backend-rust/.env
 
 # IDE / Editor
 .idea/
